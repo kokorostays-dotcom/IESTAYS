@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kokoro booking platform
 
-## Getting Started
+Guest website, mobile web app and staff back office for Kokoro Hospitality / IE Stays.
+Built with Next.js 16, Tailwind CSS 4 and SQLite.
 
-First, run the development server:
+## Run it
+
+Requires Node.js 22.5 or newer (the database uses Node's built-in SQLite).
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Guest site and app: http://localhost:3000
+- Staff back office: http://localhost:3000/admin
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The database is created at `data/kokoro.db` on first run, with two starter staff
+accounts. In development the sign-in screen shows them. Set `KOKORO_SEED_PASSWORD`
+before the first run to choose their password, and change it before going live.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## What is real and what is a stand-in
 
-## Learn More
+Real: bookings, holds, double-booking protection, guest sign-in links, staff accounts
+(hashed passwords, server sessions), online check-in, messages, date blocks.
 
-To learn more about Next.js, take a look at the following resources:
+Stand-ins, each isolated behind one function so a provider can be plugged in:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Area | Where | Today |
+| --- | --- | --- |
+| Channel inventory (Agoda, Trip.com, ...) | `lib/inventory.ts` | Generated sample reservations |
+| Payment | `takePayment` in `lib/server/bookings.ts` | Nothing is charged |
+| Email | `sendEmail` in `lib/server/auth.ts` | Written to the `outbox` table |
+| Door codes | `doorCode` in `lib/inventory.ts` | Generated, not issued by a lock |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Prices, guest counts, amenities, fees, tax and house-guide text in `lib/data.ts` are
+placeholders until Kokoro supplies the real figures. Photos and the hero film load
+from kokoro.co and ie.house.
 
-## Deploy on Vercel
+## Layout
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/` pages: home, `property/[slug]`, `(app)/` booking and stay screens, `admin/` back office, `api/` server routes
+- `components/` shared UI; `components/admin/` back office UI
+- `lib/` shared data and rules; `lib/server/` database, sign-in and booking logic
