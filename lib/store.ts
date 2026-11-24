@@ -256,10 +256,10 @@ export function useActiveStay() {
     (b) => b.email === s.sessionEmail && !s.cancelled.includes(b.ref),
   );
   // The stay they picked, else the one happening now or next, else the latest.
-  const today = todayISO();
+  const today = useToday();
   const booking =
     mine.find((b) => b.ref === s.activeRef) ??
-    mine.find((b) => b.checkOut > today) ??
+    (today ? mine.find((b) => b.checkOut > today) : undefined) ??
     mine.at(-1) ??
     null;
   const property = booking ? (getProperty(booking.slug) ?? null) : null;
