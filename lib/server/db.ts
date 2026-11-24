@@ -23,9 +23,12 @@ export function db(): Sql {
   return (globalForDb.kokoroSql ??= postgres(url, {
     // Supabase's transaction pooler doesn't keep prepared statements.
     prepare: false,
-    // Vercel runs many short-lived copies of the server; each keeps one
-    // connection and lets it go quickly, so the database never runs out.
-    max: process.env.VERCEL ? 1 : 5,
+    // Supabase's pooler hangs when several queries are sent on one connection
+    // before the answers come back, so send one at a time.
+    max_pipeline: 1,
+    // Vercel runs many short-lived copies of the server; each keeps a few
+    // connections and lets them go quickly, so the database never runs out.
+    max: process.env.VERCEL ? 3 : 5,
     idle_timeout: process.env.VERCEL ? 5 : 20,
     max_lifetime: 60 * 5,
     connect_timeout: 10,
