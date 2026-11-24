@@ -6,11 +6,10 @@ import { requireStaff } from "@/lib/server/staff";
 
 export const POST = route(async (b) => {
   await requireStaff();
-  const booking = anyBooking(b.ref);
-  const done = db
-    .prepare("UPDATE bookings SET cancelled_at = ? WHERE ref = ? AND cancelled_at IS NULL")
-    .run(Date.now(), booking.ref);
-  if (done.changes) {
-    sendEmail(booking.email, `Your booking ${booking.ref} was cancelled`, "A refund is on its way.");
+  const booking = await anyBooking(b.ref);
+  const done = await db()`
+    update bookings set cancelled_at = now() where ref = ${booking.ref} and cancelled_at is null`;
+  if (done.count) {
+    await sendEmail(booking.email, `Your booking ${booking.ref} was cancelled`, "A refund is on its way.");
   }
 });

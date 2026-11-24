@@ -6,7 +6,7 @@ import { useState, type ReactNode } from "react";
 import Icon, { type IconName } from "../Icon";
 import { Logo } from "../ui";
 import { ADMIN_ONLY, useAdminData } from "@/lib/admin";
-import { staffSignIn, staffSignOut, useAppState } from "@/lib/store";
+import { staffForgotPassword, staffSignIn, staffSignOut } from "@/lib/store";
 
 const nav: { href: string; label: string; icon: IconName }[] = [
   { href: "/admin", label: "Today", icon: "home" },
@@ -24,7 +24,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const { demoStaff } = useAppState();
+  const [notice, setNotice] = useState<string | null>(null);
   const input =
     "h-12 w-full rounded-xl border border-line bg-paper px-4 text-[16px] placeholder:text-faint";
 
@@ -87,16 +87,26 @@ function Login() {
           {busy ? "Signing in…" : "Sign in"}
         </button>
 
-        {demoStaff && (
-          <div className="mt-6 rounded-xl bg-card p-4 text-[13px] leading-relaxed text-muted">
-            <p className="font-medium text-ink">Development accounts</p>
-            {demoStaff.accounts.map((a) => (
-              <p key={a.email}>
-                {a.email} · {a.role}
-              </p>
-            ))}
-            <p>Password for both: {demoStaff.password}</p>
-          </div>
+        <button
+          type="button"
+          className="mt-4 w-full text-center text-[13px] text-muted underline underline-offset-2"
+          onClick={async () => {
+            setError(null);
+            setNotice(null);
+            try {
+              await staffForgotPassword(email.trim().toLowerCase());
+              setNotice("If that email is on the team, a link to set a new password is on its way.");
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "We couldn't send the link.");
+            }
+          }}
+        >
+          Forgot your password?
+        </button>
+        {notice && (
+          <p role="status" className="mt-3 text-[13px] text-muted">
+            {notice}
+          </p>
         )}
       </form>
     </div>
@@ -113,6 +123,9 @@ export default function AdminShell({ children }: { children: ReactNode }) {
   const isAdmin = staff?.role === "Administrator";
   const items = nav.filter((n) => isAdmin || !ADMIN_ONLY.includes(n.href));
   const restricted = !isAdmin && ADMIN_ONLY.includes(pathname);
+
+  // Invited staff choose a password here before they can sign in.
+  if (pathname === "/admin/set-password") return <>{children}</>;
 
   return (
     <>

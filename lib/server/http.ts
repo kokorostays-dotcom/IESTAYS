@@ -1,6 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
-import { HttpError } from "./bookings";
+import { HttpError } from "./errors";
 
 type Body = Record<string, unknown>;
 

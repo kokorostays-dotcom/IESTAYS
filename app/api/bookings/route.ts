@@ -5,7 +5,7 @@ import { need, route } from "@/lib/server/http";
 /** Take payment and confirm. The guest is signed in straight away, with no account step. */
 export const POST = route(async (b) => {
   const payment = (b.payment ?? {}) as { method?: unknown; last4?: unknown };
-  const booking = confirmBooking({
+  const booking = await confirmBooking({
     holdId: need(typeof b.holdId === "string" && b.holdId, "Your hold on these dates ran out."),
     client: await clientId(),
     name: need(text(b.name, 120), "Enter the lead guest's name."),
@@ -17,11 +17,17 @@ export const POST = route(async (b) => {
       last4: typeof payment.last4 === "string" ? payment.last4.slice(-4) : undefined,
     },
   });
-  sendEmail(
-    booking.email,
-    `Your stay is confirmed (${booking.ref})`,
-    `Booking ${booking.ref}: ${booking.checkIn} to ${booking.checkOut}.`,
-  );
-  await startGuestSession(booking.email);
+  // The booking is already confirmed and paid for. If either follow-up fails
+  // it must not look like the booking failed; the guest can still sign in by link.
+  try {
+    await sendEmail(
+      booking.email,
+      `Your stay is confirmed (${booking.ref})`,
+      `Booking ${booking.ref}: ${booking.checkIn} to ${booking.checkOut}.`,
+    );
+    await startGuestSession(booking.email);
+  } catch (e) {
+    console.error(e);
+  }
   return booking;
 });

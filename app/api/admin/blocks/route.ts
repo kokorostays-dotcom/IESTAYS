@@ -9,6 +9,9 @@ export const POST = route(async (b) => {
   await requireStaff();
   const slug = need(typeof b.slug === "string" && getProperty(b.slug)?.bookable && b.slug, "Unknown house.");
   const date = need(isDate(b.date) && b.date, "Choose a date.");
-  const removed = db.prepare("DELETE FROM blocks WHERE slug = ? AND date = ?").run(slug, date);
-  if (!removed.changes) db.prepare("INSERT INTO blocks (slug, date) VALUES (?, ?)").run(slug, date);
+  const sql = db();
+  const removed = await sql`delete from blocks where slug = ${slug} and date = ${date}`;
+  if (!removed.count) {
+    await sql`insert into blocks (slug, date) values (${slug}, ${date}) on conflict do nothing`;
+  }
 });

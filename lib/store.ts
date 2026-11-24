@@ -51,7 +51,6 @@ type Server = {
   staff: Staff | null;
   team: Staff[];
   blocks: string[];
-  demoStaff: { accounts: { email: string; role: string }[]; password: string } | null;
 };
 
 export type State = Local & Server & { ready: boolean };
@@ -68,7 +67,6 @@ const server0: Server = {
   staff: null,
   team: [],
   blocks: [],
-  demoStaff: null,
 };
 const initial: State = { ...local0, ...server0, ready: false };
 
@@ -207,6 +205,27 @@ export async function staffSignIn(email: string, password: string) {
 
 export async function staffSignOut() {
   await post("/api/admin/logout");
+  await refresh();
+}
+
+/** Emails a password-reset link if this address is on the team. */
+export const staffForgotPassword = (email: string) => post("/api/admin/forgot", { email });
+
+/** Finish an invitation or reset: `token` comes from the emailed link. */
+export async function staffSetPassword(token: string, password: string) {
+  await post("/api/admin/set-password", { token, password });
+  await refresh();
+}
+
+/** Administrators only: give someone back-office access and email them an invitation. */
+export async function inviteStaff(email: string, name: string, role: Staff["role"]) {
+  await post("/api/admin/team", { email, name, role });
+  await refresh();
+}
+
+/** Administrators only: take away someone's back-office access. */
+export async function removeStaff(email: string) {
+  await post("/api/admin/team", { email, remove: true });
   await refresh();
 }
 

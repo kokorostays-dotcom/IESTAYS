@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
+import AuthLinkForwarder from "@/components/AuthLinkForwarder";
 import SiteNav from "@/components/SiteNav";
 import TabBar from "@/components/TabBar";
 
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${body.variable} ${cormorant.variable} antialiased`}
     >
       <body>
+        <AuthLinkForwarder />
         <SiteNav />
         {children}
         <TabBar />

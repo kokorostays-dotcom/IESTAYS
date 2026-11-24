@@ -19,7 +19,7 @@ export default function SignIn() {
       <Empty
         icon="mail"
         title="Check your inbox"
-        body={`If ${clean} has a booking with us, a sign-in link is on its way. It works for 15 minutes.`}
+        body={`If ${clean} has a booking with us, a sign-in link is on its way. It works once.`}
         action={
           <div className="space-y-3">
             {devLink && (
