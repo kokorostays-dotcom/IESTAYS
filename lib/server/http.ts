@@ -25,8 +25,14 @@ export function route(fn: (body: Body, req: Request) => Promise<unknown> | unkno
         return Response.json({ error: e.code, message: e.message }, { status: e.status });
       }
       console.error(e);
+      // A short code such as CONNECT_TIMEOUT helps diagnose without exposing details.
+      const code = (e as { code?: unknown })?.code;
       return Response.json(
-        { error: "server_error", message: "Something went wrong. Please try again." },
+        {
+          error: "server_error",
+          message: "Something went wrong. Please try again.",
+          ...(typeof code === "string" && /^[A-Za-z0-9_]{1,40}$/.test(code) ? { code } : {}),
+        },
         { status: 500 },
       );
     }
